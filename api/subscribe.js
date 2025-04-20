@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           email,
-          listIds: [parseInt(process.env.BREVO_LIST_ID)], // Your Brevo list ID
+          listIds: [3], // Your Brevo list ID
           updateEnabled: true, // Update if already exists
         }),
       });
