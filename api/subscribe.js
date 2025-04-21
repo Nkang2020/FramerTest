@@ -1,47 +1,61 @@
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { email } = req.body;
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk;
+  });
 
-  if (!email) {
-    return res.status(400).json({ message: "Email is required" });
-  }
+  req.on('end', async () => {
+    try {
+      const { email } = JSON.parse(body);
 
-  try {
-    const brevoRes = await fetch("https://api.brevo.com/v3/contacts", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "api-key": process.env.BREVO_API_KEY,
-      },
-      body: JSON.stringify({
-        email,
-        listIds: [parseInt(process.env.BREVO_LIST_ID)],
-        updateEnabled: true,
-      }),
-    });
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
 
-    const data = await brevoRes.json();
-    console.log("Brevo response:", brevoRes.status, data);
+      const brevoRes = await fetch('https://api.brevo.com/v3/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': process.env.BREVO_API_KEY,
+        },
+        body: JSON.stringify({
+          email,
+          listIds: [parseInt(process.env.BREVO_LIST_ID)],
+          updateEnabled: true,
+        }),
+      });
 
-    if (!brevoRes.ok) {
-      return res.status(brevoRes.status).json({ message: data.message || "Failed to add contact" });
+      const text = await brevoRes.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { raw: text };
+      }
+
+      if (!brevoRes.ok) {
+        console.error("Brevo error:", data);
+        return res
+          .status(brevoRes.status)
+          .json({ message: data.message || data.raw || 'Failed to add contact' });
+      }
+
+      return res.status(200).json({ message: 'Contact added successfully' });
+    } catch (err) {
+      console.error("Error contacting Brevo:", err);
+      return res.status(500).json({ message: 'Server error', error: err.message });
     }
-
-    return res.status(200).json({ message: "Contact added successfully" });
-  } catch (err) {
-    console.error("Error contacting Brevo:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
-  }
+  });
 }
