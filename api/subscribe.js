@@ -24,7 +24,8 @@ export default async function handler(req, res) {
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
       }
-
+      console.log("API KEY", process.env.BREVO_API_KEY); // Remove after testing
+      console.log("LIST ID", process.env.BREVO_LIST_ID);
       const response = await fetch('https://api.brevo.com/v3/contacts', {
         method: 'POST',
         headers: {
