@@ -2,7 +2,8 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
+  console.log("API KEY", process.env.BREVO_API_KEY); // Remove after testing
+  console.log("LIST ID", process.env.BREVO_LIST_ID); 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -24,8 +25,6 @@ export default async function handler(req, res) {
       if (!email) {
         return res.status(400).json({ message: 'Email is required' });
       }
-      console.log("API KEY", process.env.BREVO_API_KEY); // Remove after testing
-      console.log("LIST ID", process.env.BREVO_LIST_ID);
       const response = await fetch('https://api.brevo.com/v3/contacts', {
         method: 'POST',
         headers: {
