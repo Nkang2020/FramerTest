@@ -1,4 +1,14 @@
 export default async function handler(req, res) {
+    // Add CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*'); // or use your domain for stricter control
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+    // Handle preflight OPTIONS request
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+  
     if (req.method !== 'POST') {
       return res.status(405).json({ message: 'Method not allowed' });
     }
@@ -18,8 +28,8 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           email,
-          listIds: [3], // Your Brevo list ID
-          updateEnabled: true, // Update if already exists
+          listIds: [parseInt(process.env.BREVO_LIST_ID)],
+          updateEnabled: true,
         }),
       });
   
