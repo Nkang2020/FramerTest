@@ -41,6 +41,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ message: "Contact added successfully" });
   } catch (err) {
+    console.error("Error contacting Brevo:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 }
